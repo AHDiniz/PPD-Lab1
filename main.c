@@ -26,6 +26,8 @@ int main(void)
     
     MergeSort(vec, 0, count - 1);
 
+    free(vec);
+
     return EXIT_SUCCESS;
 }
 
