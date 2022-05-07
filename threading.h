@@ -3,15 +3,16 @@
 #define THREADING_H_
 
 #ifdef _WIN32
-#include <windows.h>
-typedef HANDLE Thread;
-typedef CRITICAL_SECTION Mutex;
-typedef CONDITION_VARIABLE Condition;
+    #include <windows.h>
+    #include <Windows.h>
+    typedef HANDLE Thread;
+    typedef CRITICAL_SECTION Mutex;
+    typedef CONDITION_VARIABLE Condition;
 #else
-#include <pthread.h>
-typedef pthread_t Thread;
-typedef pthread_mutex_t Mutex;
-typedef pthread_cond_t Condition;
+    #include <pthread.h>
+    typedef pthread_t Thread;
+    typedef pthread_mutex_t Mutex;
+    typedef pthread_cond_t Condition;
 #endif
 
 typedef void (ThreadFunc) (void *);

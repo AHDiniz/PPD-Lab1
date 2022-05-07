@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "threading.h"
+#include "random.h"
+
+#define MIN_COUNT 1000
+#define MAX_COUNT 999999
 
 void ParallelMergeSort(int *vec, int count, int threads);
 void MergeSort(int *vec, int start, int end);
@@ -9,7 +14,17 @@ void Merge(int *vec, int start, int mid, int end);
 
 int main(void)
 {
+    InitRandom();
+
+    int count = RandomRange(MIN_COUNT, MAX_COUNT);
+    int *vec = malloc(sizeof(int) * count);
+
+    for (int i = 0; i < count; ++i)
+    {
+        vec[i] = RandomRange(INT_MIN, INT_MAX);
+    }
     
+    MergeSort(vec, 0, count - 1);
 
     return EXIT_SUCCESS;
 }

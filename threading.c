@@ -2,15 +2,13 @@
 
 #ifdef _WIN32
 
-#include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 
 typedef struct internalParams
 {
-    ThreadFunc f;
+    ThreadFunc *f;
     void *data;
 } InternalParams;
 
@@ -24,12 +22,16 @@ static DWORD WINAPI InternalMethodPtr(LPVOID arg)
 
 int ThreadCreate(Thread *t, ThreadFunc f, void *data)
 {
-    InternalParams *params;
+    InternalParams *params = malloc(sizeof(InternalParams));
+    assert(params != NULL);
     params->f = f;
     params->data = data;
     *t = CreateThread(NULL, 0, InternalMethodPtr, params, 0, NULL);
     if (t == NULL)
+    {
+        free(params);
         return false;
+    }
     return true;
 }
 
