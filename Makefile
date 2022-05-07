@@ -1,6 +1,6 @@
 CC := gcc
 
-EXE := merge
+EXE := bin/merge
 
 SRC := $(wildcard *.c)
 
