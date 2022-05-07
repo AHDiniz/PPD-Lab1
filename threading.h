@@ -27,7 +27,7 @@ int MutexDestroy(Mutex *m);
 
 int ConditionInit(Condition *c);
 int ConditionSignal(Condition *c);
-int ConditionWait(Condition *c);
+int ConditionWait(Condition *c, Mutex *m);
 int ConditionDestroy(Condition *c);
 
 #endif
