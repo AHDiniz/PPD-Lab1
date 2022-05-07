@@ -12,6 +12,14 @@ void ParallelMergeSort(int *vec, int count, int threads);
 void MergeSort(int *vec, int start, int end);
 void Merge(int *vec, int start, int mid, int end);
 
+int count = 0;
+
+void TestFunction(void *i)
+{
+    int t = *((int *)i);
+    count += t;
+}
+
 int main(void)
 {
     InitRandom();
@@ -27,6 +35,15 @@ int main(void)
     MergeSort(vec, 0, count - 1);
 
     free(vec);
+
+    Thread threads[4];
+
+    for (int i = 0; i < 4; ++i)
+    {
+        ThreadCreate(&(threads[i]), TestFunction, NULL);
+    }
+
+    printf("Count = %d\n", count);
 
     return EXIT_SUCCESS;
 }
