@@ -18,15 +18,16 @@ static DWORD WINAPI InternalMethodPtr(LPVOID arg)
 {
     InternalParams *params = (InternalParams *)arg;
     params->f(params->data);
+    free(params);
     return 0;
 }
 
 int ThreadCreate(Thread *t, ThreadFunc f, void *data)
 {
-    InternalParams params;
-    params.f = f;
-    params.data = data;
-    *t = CreateThread(NULL, 0, InternalMethodPtr, &params, 0, NULL);
+    InternalParams *params;
+    params->f = f;
+    params->data = data;
+    *t = CreateThread(NULL, 0, InternalMethodPtr, params, 0, NULL);
     if (t == NULL)
         return false;
     return true;
@@ -96,4 +97,60 @@ int ConditionDestroy(Condition *c)
 }
 
 #else
+
+int ThreadCreate(Thread *t, ThreadFunc f, void *data)
+{
+    return pthread_create(t, 0, (void*)f, data);
+}
+
+int ThreadJoin(Thread *t)
+{
+    return pthread_join(t);
+}
+
+int MutexInit(Mutex *m)
+{
+    return pthread_mutex_init(m);
+}
+
+int MutexLock(Mutex *m)
+{
+    return pthread_mutex_lock(m);
+}
+
+int MutexTryLock(Mutex *m)
+{
+    return pthread_mutex_trylock(m);
+}
+
+int MutexUnlock(Mutex *m)
+{
+    return pthread_mutex_unlock(m);
+}
+
+int MutexDestroy(Mutex *m)
+{
+    return pthread_mutex_destroy(m);
+}
+
+int ConditionInit(Condition *c)
+{
+    return pthread_cond_init(c);
+}
+
+int ConditionSignal(Condition *c)
+{
+    return pthread_cond_signal(c);
+}
+
+int ConditionWait(Condition *c, Mutex *m)
+{
+    return pthread_cond_wait(c, m);
+}
+
+int ConditionDestroy(Condition *c)
+{
+    return pthread_cond_destroy(c);
+}
+
 #endif
