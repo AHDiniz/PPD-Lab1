@@ -5,86 +5,62 @@
 #include "threading.h"
 #include "random.h"
 
-#define MIN_COUNT 1000
-#define MAX_COUNT 999999
+#define MIN_COUNT 500
+#define MAX_COUNT 1000
 
-void ParallelMergeSort(int *vec, int count, int threads);
 void MergeSort(int *vec, int start, int end);
-void Merge(int *vec, int start, int mid, int end);
-
-int count = 0;
-
-void TestFunction(void *i)
-{
-    int t = *((int *)i);
-    count += t;
-}
 
 int main(void)
 {
+    printf("1\n");
+
     InitRandom();
 
     int count = RandomRange(MIN_COUNT, MAX_COUNT);
     int *vec = malloc(sizeof(int) * count);
 
+    printf("2\n");
+
     for (int i = 0; i < count; ++i)
     {
-        vec[i] = RandomRange(INT_MIN, INT_MAX);
+        vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
     }
+
+    printf("3\n");
     
-    MergeSort(vec, 0, count - 1);
+    MergeSort(vec, 0, count);
 
     free(vec);
 
-    Thread threads[4];
-
-    for (int i = 0; i < 4; ++i)
-    {
-        ThreadCreate(&(threads[i]), TestFunction, NULL);
-    }
-
-    printf("Count = %d\n", count);
+    printf("4\n");
 
     return EXIT_SUCCESS;
 }
 
-void ParallelMergeSort(int *vec, int count, int threads)
+void Merge(int *vec, int *aux, int start, int mid, int end)
 {
+    int i, j;
+    for (i = mid + 1; i > start; --i)
+        aux[i - 1] = vec[i - 1];
+    for (j = mid; j < end; ++j)
+        aux[end + mid - j] = vec[j + 1];
+    for (int k = start; k <= end; ++k)
+        vec[k] = aux[j] < aux[i] ? aux[j--] : aux[i++];
+}
 
+void MergeSortAux(int *vec, int *aux, int start, int end)
+{
+    if (end < start)
+        return;
+    int mid = (start + end) / 2;
+    MergeSortAux(vec, aux, start, mid);
+    MergeSortAux(vec, aux, mid + 1, end);
+    Merge(vec, aux, start, mid, end);
 }
 
 void MergeSort(int *vec, int start, int end)
 {
-    if (end <= start) return;
-    int mid = (end + start) / 2;
-    MergeSort(vec, start, mid);
-    MergeSort(vec, mid + 1, end);
-    Merge(vec, start, mid, end);
-}
-
-void OutMerge(int *vec, int *a, int aCount, int *b, int bCount)
-{
-    for (int i = 0, j = 0, k = 0; k < aCount + bCount; ++k)
-    {
-        if (i == aCount)
-        {
-            vec[k] = b[j++];
-            continue;
-        }
-        if (j == bCount)
-        {
-            vec[k] = a[i++];
-            continue;
-        }
-        vec[k] = a[i] < b[j] ? a[i++] : b[j++];
-    }
-}
-
-void Merge(int *vec, int start, int mid, int end)
-{
     int *aux = malloc(sizeof(int) * (end - start));
-    memcpy(aux, vec + start, sizeof(int) * (end - start));
-    OutMerge(aux, vec + start, mid - start, vec + mid + 1, end - mid + 1);
-    memcpy(vec + start, aux, sizeof(int) * (end - start));
+    MergeSortAux(vec, aux, start, end);
     free(aux);
 }
