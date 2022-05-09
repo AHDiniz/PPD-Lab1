@@ -107,7 +107,7 @@ int ThreadCreate(Thread *t, ThreadFunc f, void *data)
 
 int ThreadJoin(Thread *t)
 {
-    return pthread_join(t, NULL);
+    return pthread_join(*t, NULL);
 }
 
 int MutexInit(Mutex *m)

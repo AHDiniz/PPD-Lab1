@@ -8,6 +8,11 @@
 #define MIN_COUNT 500
 #define MAX_COUNT 1000
 
+#ifndef _WIN32
+#define INT_MIN -2147483647 - 1
+#define INT_MAX  2147483647
+#endif
+
 void MergeSort(int *vec, int start, int end);
 
 int main(void)
