@@ -107,12 +107,12 @@ int ThreadCreate(Thread *t, ThreadFunc f, void *data)
 
 int ThreadJoin(Thread *t)
 {
-    return pthread_join(t);
+    return pthread_join(t, NULL);
 }
 
 int MutexInit(Mutex *m)
 {
-    return pthread_mutex_init(m);
+    return pthread_mutex_init(m, NULL);
 }
 
 int MutexLock(Mutex *m)
@@ -137,7 +137,7 @@ int MutexDestroy(Mutex *m)
 
 int ConditionInit(Condition *c)
 {
-    return pthread_cond_init(c);
+    return pthread_cond_init(c, NULL);
 }
 
 int ConditionSignal(Condition *c)
