@@ -5,8 +5,8 @@
 #include "threading.h"
 #include "random.h"
 
-#define MIN_COUNT 50
-#define MAX_COUNT 50
+#define MIN_COUNT 10
+#define MAX_COUNT 25
 
 void MergeSort(int *vec, int start, int end);
 
@@ -14,30 +14,24 @@ int main(void)
 {
     InitRandom();
 
-    // int count = RandomRange(MIN_COUNT, MAX_COUNT);
-    // int *vec = malloc(sizeof(int) * count);
-
-    // for (int i = 0; i < count; ++i)
-    // {
-    //     vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
-    // }
-
-    int count = 10;
-    int vec[10] = {45723, 18341, 6578, 568, 127341, 58, 5867, 37, 373, 976};
+    int count = RandomRange(MIN_COUNT, MAX_COUNT);
+    int *vec = malloc(sizeof(int) * count);
 
     for (int i = 0; i < count; ++i)
     {
-        printf("%d: %d\n", i, vec[i]);
+        // vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
+        vec[i] = RandomRange(0, 50);
     }
+
+    for (int i = 0; i < count; ++i)
+        printf("%d: %d\n", i, vec[i]);
 
     MergeSort(vec, 0, count - 1);
 
     for (int i = 0; i < count; ++i)
-    {
         printf("%d: %d\n", i, vec[i]);
-    }
 
-    // free(vec);
+    free(vec);
 
     return EXIT_SUCCESS;
 }
@@ -67,7 +61,7 @@ void MergeSortAux(int *vec, int *aux, int start, int end)
 
 void MergeSort(int *vec, int start, int end)
 {
-    int *aux = malloc(sizeof(int) * (end - start));
+    int *aux = malloc(sizeof(int) * ((end + 1) - start));
     MergeSortAux(vec, aux, start, end);
     free(aux);
 }
