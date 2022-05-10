@@ -19,7 +19,7 @@ int main(void)
 
     for (int i = 0; i < count; ++i)
     {
-        vec[i] = RandomRange(INT_MIN, INT_MAX);
+        vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
     }
 
     MergeSort(vec, 0, count - 1);
