@@ -8,6 +8,13 @@
 #define MIN_COUNT 10
 #define MAX_COUNT 25
 
+typedef struct mergeSortInput
+{
+    int start, end;
+    int *vec;
+} MergeSortInput;
+
+void ParallelMergeSort(void *in);
 void MergeSort(int *vec, int start, int end);
 void Merge(int *vec, int start, int mid, int end);
 
@@ -19,7 +26,9 @@ int main(void)
 
     int count = 24; // RandomRange(MIN_COUNT, MAX_COUNT);
     int *vec = malloc(sizeof(int) * count);
-    int threadsNum = 8; // RandomRange(2, 6);
+    int threadsNum = GetCoreCount(); // 8; // RandomRange(2, 6);
+
+    Thread *threadIDs = malloc(sizeof(Thread) * threadsNum);
 
     int vecPositionsSize = (threadsNum * 2);
     int *vecPositions = malloc(sizeof(int) * vecPositionsSize);
@@ -52,8 +61,16 @@ int main(void)
 
         printf("Thread %d: start = %d, end = %d\n", i, start, end);
         // Call MergeSort on each thread
-        MergeSort(vec, start, end);
+        // MergeSort(vec, start, end);
+        MergeSortInput in;
+        in.vec = vec;
+        in.start = start;
+        in.end = end;
+        ThreadCreate(&(threadIDs[i]), ParallelMergeSort, &in);
     }
+
+    for (int i = 0; i < threadsNum; ++i)
+        ThreadJoin(&(threadIDs[i]));
 
     // TODO: Startar as threads recursivamente
     // merge all threads
@@ -84,6 +101,7 @@ int main(void)
 
     free(vecPositions);
     free(vec);
+    free(threadIDs);
 
     return EXIT_SUCCESS;
 }
@@ -133,4 +151,10 @@ void MergeSort(int *vec, int start, int end)
     MergeSort(vec, start, mid);
     MergeSort(vec, mid + 1, end);
     Merge(vec, start, mid, end);
+}
+
+void ParallelMergeSort(void *in)
+{
+    MergeSortInput *input = (MergeSortInput *)in;
+    MergeSort(input->vec, input->start, input->end);
 }
