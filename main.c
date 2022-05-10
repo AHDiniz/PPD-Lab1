@@ -14,17 +14,20 @@ int main(void)
 {
     InitRandom();
 
-    int count = RandomRange(MIN_COUNT, MAX_COUNT);
-    int *vec = malloc(sizeof(int) * count);
+    // int count = RandomRange(MIN_COUNT, MAX_COUNT);
+    // int *vec = malloc(sizeof(int) * count);
 
-    for (int i = 0; i < count; ++i)
-    {
-        vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
-    }
+    // for (int i = 0; i < count; ++i)
+    // {
+    //     vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
+    // }
+
+    int count = 10;
+    int vec[10] = {45723, 18341, 6578, 568, 127341, 58, 5867, 37, 373, 976};
 
     MergeSort(vec, 0, count - 1);
 
-    free(vec);
+    // free(vec);
 
     return EXIT_SUCCESS;
 }
