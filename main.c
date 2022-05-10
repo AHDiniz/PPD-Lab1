@@ -9,25 +9,78 @@
 #define MAX_COUNT 25
 
 void MergeSort(int *vec, int start, int end);
+void Merge(int *vec, int start, int mid, int end);
 
 int main(void)
 {
     InitRandom();
 
-    int count = RandomRange(MIN_COUNT, MAX_COUNT);
+    int count = 24; // RandomRange(MIN_COUNT, MAX_COUNT);
     int *vec = malloc(sizeof(int) * count);
+    int threadsNum = 8; // RandomRange(2, 6);
+
+    int vecPositionsSize = (threadsNum * 2);
+    int *vecPositions = malloc(sizeof(int) * vecPositionsSize);
+    vecPositions[0] = 0;
+
+    vecPositions[vecPositionsSize - 1] = count - 1;
+
+    int sizeOfPartition = count / threadsNum;
+
+    for (int i = 1; i < vecPositionsSize - 1; i++)
+    {
+        vecPositions[i] = i % 2 == 0 ? vecPositions[i - 1] + 1 : vecPositions[i - 1] + (sizeOfPartition - 1);
+    }
+
+    // print vecPositions with name and index
+    for (int i = 0; i < vecPositionsSize; i++)
+    {
+        printf("vecPositions[%d] = %d\n", i, vecPositions[i]);
+    }
 
     for (int i = 0; i < count; ++i)
     {
-        // vec[i] = RandomRange(INT_MIN / 100, INT_MAX / 100);
         vec[i] = RandomRange(0, 50);
     }
 
-    MergeSort(vec, 0, count - 1);
+    for (int i = 0; i < threadsNum; i++)
+    {
+        int start = vecPositions[i * 2];
+        int end = vecPositions[i * 2 + 1];
 
-    for (int i = 0; i < count; ++i)
-        printf("%d: %d\n", i, vec[i]);
+        printf("Thread %d: start = %d, end = %d\n", i, start, end);
+        // Call MergeSort on each thread
+        MergeSort(vec, start, end);
+    }
 
+    // TODO: Startar as threads recursivamente
+    // merge all threads
+    for (int i = 0; i < threadsNum; i += 2)
+    {
+        int start = vecPositions[i * 2];
+        int mid = vecPositions[(i + 1) * 2];
+        int end = vecPositions[(i + 1) * 2 + 1];
+
+        // print pointers
+        printf("Merging: start = %d, mid = %d, end = %d\n", start, mid, end);
+
+        Merge(vec, start, start + (end - start) / 2, end);
+    }
+
+    int start = 0;
+    int mid = (count - 1) / 2;
+    int end = count - 1;
+
+    printf("Merging: start = %d, mid = %d, end = %d\n", start, mid, end);
+    Merge(vec, start, mid, end);
+
+    // print vec with name and index
+    for (int i = 0; i < count; i++)
+    {
+        printf("vec[%d] = %d\n", i, vec[i]);
+    }
+
+    free(vecPositions);
     free(vec);
 
     return EXIT_SUCCESS;
