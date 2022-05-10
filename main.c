@@ -25,7 +25,17 @@ int main(void)
     int count = 10;
     int vec[10] = {45723, 18341, 6578, 568, 127341, 58, 5867, 37, 373, 976};
 
+    for (int i = 0; i < count; ++i)
+    {
+        printf("%d: %d\n", i, vec[i]);
+    }
+
     MergeSort(vec, 0, count - 1);
+
+    for (int i = 0; i < count; ++i)
+    {
+        printf("%d: %d\n", i, vec[i]);
+    }
 
     // free(vec);
 
@@ -49,7 +59,7 @@ void MergeSortAux(int *vec, int *aux, int start, int end)
 {
     if (end <= start)
         return;
-    int mid = start + (start + end) / 2;
+    int mid = start + (end - start) / 2;
     MergeSortAux(vec, aux, start, mid);
     MergeSortAux(vec, aux, mid + 1, end);
     Merge(vec, aux, start, mid, end);
