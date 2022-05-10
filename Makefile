@@ -4,7 +4,7 @@ EXE := bin/merge
 
 SRC := $(wildcard *.c)
 
-FLAGS :=
+FLAGS := -g
 ifeq ($(OS), Windows_NT)
 	LIBS := -lgdi32 -lwinmm
 else
