@@ -6,6 +6,14 @@
 #include <assert.h>
 #include <stdbool.h>
 
+int GetCoreCount(void)
+{
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+
+    return sysInfo.dwNumberOfProcessors;
+}
+
 typedef struct internalParams
 {
     ThreadFunc *f;
@@ -99,6 +107,11 @@ int ConditionDestroy(Condition *c)
 }
 
 #else
+
+int GetCoreCount(void)
+{
+    return get_nprocs();
+}
 
 int ThreadCreate(Thread *t, ThreadFunc f, void *data)
 {

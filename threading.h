@@ -10,12 +10,15 @@
     typedef CONDITION_VARIABLE Condition;
 #else
     #include <pthread.h>
+    #include <sys/sysinfo.h>
     typedef pthread_t Thread;
     typedef pthread_mutex_t Mutex;
     typedef pthread_cond_t Condition;
 #endif
 
 typedef void (ThreadFunc) (void *);
+
+int GetCoreCount(void);
 
 int ThreadCreate(Thread *t, ThreadFunc f, void *data);
 int ThreadJoin(Thread *t);

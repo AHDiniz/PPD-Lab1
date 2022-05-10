@@ -13,6 +13,8 @@ void Merge(int *vec, int start, int mid, int end);
 
 int main(void)
 {
+    printf("Number of cores: %d\n", GetCoreCount());
+
     InitRandom();
 
     int count = 24; // RandomRange(MIN_COUNT, MAX_COUNT);
