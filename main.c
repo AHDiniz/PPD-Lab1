@@ -23,9 +23,6 @@ int main(void)
         vec[i] = RandomRange(0, 50);
     }
 
-    for (int i = 0; i < count; ++i)
-        printf("%d: %d\n", i, vec[i]);
-
     MergeSort(vec, 0, count - 1);
 
     for (int i = 0; i < count; ++i)
@@ -36,32 +33,49 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-void Merge(int *vec, int *aux, int start, int mid, int end)
+void Merge(int *vec, int start, int mid, int end)
 {
-    if (end <= start || end <= mid || mid <= start)
+    int start2 = mid + 1;
+    // if the first half is smaller than the second half, return
+    if (vec[mid] <= vec[start2])
         return;
-    int i, j;
-    for (i = mid + 1; i > start; --i)
-        aux[i - 1] = vec[i - 1];
-    for (j = mid; j < end; ++j)
-        aux[end + mid - j] = vec[j + 1];
-    for (int k = start; k <= end; ++k)
-        vec[k] = aux[j] < aux[i] ? aux[j--] : aux[i++];
-}
 
-void MergeSortAux(int *vec, int *aux, int start, int end)
-{
-    if (end <= start)
-        return;
-    int mid = start + (end - start) / 2;
-    MergeSortAux(vec, aux, start, mid);
-    MergeSortAux(vec, aux, mid + 1, end);
-    Merge(vec, aux, start, mid, end);
+    // while start <= mid and start2 <= end, loop
+    while (start <= mid && start2 <= end)
+    {
+        // if element at start is smaller than element at start2, increment start
+        if (vec[start] <= vec[start2])
+        {
+            start++;
+        }
+        else
+        {
+            int value = vec[start2];
+            int index = start2;
+
+            // shift all elements from start2 to end to the left
+            while (index != start)
+            {
+                vec[index] = vec[index - 1];
+                index--;
+            }
+
+            vec[start] = value;
+
+            // update all pointers
+            start++;
+            mid++;
+            start2++;
+        }
+    }
 }
 
 void MergeSort(int *vec, int start, int end)
 {
-    int *aux = malloc(sizeof(int) * ((end + 1) - start));
-    MergeSortAux(vec, aux, start, end);
-    free(aux);
+    if (end <= start)
+        return;
+    int mid = start + (end - start) / 2;
+    MergeSort(vec, start, mid);
+    MergeSort(vec, mid + 1, end);
+    Merge(vec, start, mid, end);
 }
