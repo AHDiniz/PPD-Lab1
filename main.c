@@ -31,11 +31,9 @@ int main(void)
 {
     InitRandom();
 
-    time_t timeStart = clock() / CLOCKS_PER_SEC;
-
-    int count = 200000; // RandomRange(MIN_COUNT, MAX_COUNT);
+    int count = 90000; // RandomRange(MIN_COUNT, MAX_COUNT);
     int *vec = malloc(sizeof(int) * count);
-    int threadsNum = 2; // 8; // RandomRange(2, 6);
+    int threadsNum = 4;
 
     Thread *threadIDs = malloc(sizeof(Thread) * threadsNum);
     MergeSortInput *mergeSortInputs = malloc(sizeof(MergeSortInput) * threadsNum);
@@ -43,11 +41,10 @@ int main(void)
 
     int vecPositionsSize = (threadsNum * 2);
     int *vecPositions = malloc(sizeof(int) * vecPositionsSize);
+    int sizeOfPartition = count / threadsNum;
     vecPositions[0] = 0;
 
     vecPositions[vecPositionsSize - 1] = count - 1;
-
-    int sizeOfPartition = count / threadsNum;
 
     for (int i = 1; i < vecPositionsSize - 1; i++)
     {
@@ -56,8 +53,11 @@ int main(void)
 
     for (int i = 0; i < count; ++i)
     {
-        vec[i] = RandomRange(0, 50);
+        vec[i] = RandomRange(0, INT_MAX / 1000);
     }
+
+
+    time_t timeStart = clock() / CLOCKS_PER_SEC;
 
     for (int i = 0; i < threadsNum; i++)
     {
@@ -113,7 +113,7 @@ int main(void)
 
     time_t timeEnd = clock() / CLOCKS_PER_SEC;
 
-    printf("Time to run = %ld\n", (timeEnd - timeStart));
+    printf("Time to run = %lds\n", (timeEnd - timeStart));
 
     printf("Sorted = %s\n", IsSorted(vec, count) ? "YES" : "NO");
 
