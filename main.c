@@ -18,8 +18,19 @@ typedef struct mergeInput
     int *vec;
 } MergeInput;
 
+void merge_threads(int numThreads, int numbersPerThread, int count, int *vec, int *vec_copy);
+#define CHECK_TIME(x)                                                                                       \
+    {                                                                                                       \
+        struct timespec start, end;                                                                         \
+        clock_gettime(CLOCK_REALTIME, &start);                                                              \
+        x;                                                                                                  \
+        clock_gettime(CLOCK_REALTIME, &end);                                                                \
+        double f = ((double)end.tv_sec * 1e9 + end.tv_nsec) - ((double)start.tv_sec * 1e9 + start.tv_nsec); \
+        printf("took [%f] ms\n", f / 1000000);                                                                \
+    }
+
 /* merge function */
-void merge_new(int *vec, int left, int middle, int right)
+void merge(int *vec, int left, int middle, int right)
 {
     int left_length = middle - left + 1;
     int left_array[left_length];
@@ -75,21 +86,21 @@ void merge_new(int *vec, int left, int middle, int right)
 }
 
 /* perform merge sort */
-void merge_sort_new(int *vec, int left, int right)
+void merge_sort(int *vec, int left, int right)
 {
     if (left < right)
     {
         int middle = left + (right - left) / 2;
-        merge_sort_new(vec, left, middle);
-        merge_sort_new(vec, middle + 1, right);
-        merge_new(vec, left, middle, right);
+        merge_sort(vec, left, middle);
+        merge_sort(vec, middle + 1, right);
+        merge(vec, left, middle, right);
     }
 }
 
 void thread_merge(void *arg)
 {
     MergeInput *input = (MergeInput *)arg;
-    merge_sort_new(input->vec, input->start, input->end);
+    merge_sort(input->vec, input->start, input->end);
     free(input);
 }
 
@@ -112,7 +123,7 @@ void thread_merge_sort(void *arg)
     int middle = left + (right - left) / 2;
     if (left < right)
     {
-        merge_sort_new(vec, left, right);
+        merge_sort(vec, left, right);
     }
 
     free(input);
@@ -182,45 +193,18 @@ int main(void)
         }
         int *vec_copy = malloc(sizeof(int) * count);
 
-        int threadsNum[6] = {1, 2, 4, 6, 8, 16};
+        int threadsNum[5] = {1, 2, 4, 8, 16};
 
         // Execute for different number of threads
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 5; i++)
         {
-            time_t start, end;
-            time(&start);
             int numThreads = threadsNum[i];
             int numbersPerThread = count / numThreads;
             int offset = count % numThreads;
-            Thread *threads = malloc(sizeof(Thread) * numThreads);
 
-            // memcpy vec to vec_copy
-            memcpy(vec_copy, vec, sizeof(int) * count);
-
-            /* create threads */
-            for (int i = 0; i < numThreads; i++)
-            {
-                MergeSortInput *input = malloc(sizeof(MergeSortInput));
-                input->vec = vec_copy;
-                input->threadId = i;
-                input->numbersPerThread = numbersPerThread;
-                input->numThreads = numThreads;
-                input->offset = offset;
-
-                ThreadCreate(&threads[i], thread_merge_sort, input);
-            }
-            for (long i = 0; i < numThreads; i++)
-            {
-                ThreadJoin(&threads[i]);
-            }
-
-            merge_sections_of_array(vec_copy, numThreads, 1, numbersPerThread, count);
-            free(threads);
-            time(&end);
-
+            printf("Sorting for [%d] numbers with [%d] threads ", count, numThreads);
+            CHECK_TIME(merge_threads(numThreads, numbersPerThread, count, vec, vec_copy));
             test_array_is_in_order(vec_copy, count);
-            double dif = difftime(end, start);
-            printf("Sorting for [%d] numbers with [%d] threads took [%.10lf] seconds to run.\n", count, numThreads, dif);
         }
 
         free(vec);
@@ -228,4 +212,33 @@ int main(void)
     }
 
     return EXIT_SUCCESS;
+}
+
+void merge_threads(int numThreads, int numbersPerThread, int count, int *vec, int *vec_copy)
+{
+    int offset = count % numThreads;
+    Thread *threads = malloc(sizeof(Thread) * numThreads);
+
+    // memcpy vec to vec_copy
+    memcpy(vec_copy, vec, sizeof(int) * count);
+
+    /* create threads */
+    for (int i = 0; i < numThreads; i++)
+    {
+        MergeSortInput *input = malloc(sizeof(MergeSortInput));
+        input->vec = vec_copy;
+        input->threadId = i;
+        input->numbersPerThread = numbersPerThread;
+        input->numThreads = numThreads;
+        input->offset = offset;
+
+        ThreadCreate(&threads[i], thread_merge_sort, input);
+    }
+    for (long i = 0; i < numThreads; i++)
+    {
+        ThreadJoin(&threads[i]);
+    }
+
+    merge_sections_of_array(vec_copy, numThreads, 1, numbersPerThread, count);
+    free(threads);
 }
