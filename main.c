@@ -6,12 +6,9 @@
 #include "threading.h"
 #include "random.h"
 
-#define MIN_COUNT 10
-#define MAX_COUNT 25
-
 typedef struct mergeSortInput
 {
-    int start, end;
+    int threadId, numbersPerThread, numThreads, offset;
     int *vec;
 } MergeSortInput;
 
@@ -21,176 +18,214 @@ typedef struct mergeInput
     int *vec;
 } MergeInput;
 
-void ParallelMergeSort(void *in);
-void ParallelMerge(void *in);
-void MergeSort(int *vec, int start, int end);
-void Merge(int *vec, int start, int mid, int end);
-int IsSorted(int *vec, int count);
+/* merge function */
+void merge_new(int *vec, int left, int middle, int right)
+{
+    int left_length = middle - left + 1;
+    int left_array[left_length];
+    int i = 0; // index for left_array
+    /* copy values to left array */
+    for (int i = 0; i < left_length; i++)
+    {
+        left_array[i] = vec[left + i];
+    }
+
+    int j = 0; // index for right_array
+    int right_length = right - middle;
+    int right_array[right_length];
+    /* copy values to right array */
+    for (int j = 0; j < right_length; j++)
+    {
+        right_array[j] = vec[middle + 1 + j];
+    }
+
+    i = 0;
+    j = 0;
+    int k = 0; // Relative position in the merged array
+
+    /** chose from right and left arrays and copy */
+    while (i < left_length && j < right_length)
+    {
+        if (left_array[i] <= right_array[j])
+        {
+            vec[left + k] = left_array[i];
+            i++;
+        }
+        else
+        {
+            vec[left + k] = right_array[j];
+            j++;
+        }
+        k++;
+    }
+
+    /* copy the remaining values to the array */
+    while (i < left_length)
+    {
+        vec[left + k] = left_array[i];
+        k++;
+        i++;
+    }
+    while (j < right_length)
+    {
+        vec[left + k] = right_array[j];
+        k++;
+        j++;
+    }
+}
+
+/* perform merge sort */
+void merge_sort_new(int *vec, int left, int right)
+{
+    if (left < right)
+    {
+        int middle = left + (right - left) / 2;
+        merge_sort_new(vec, left, middle);
+        merge_sort_new(vec, middle + 1, right);
+        merge_new(vec, left, middle, right);
+    }
+}
+
+void thread_merge(void *arg)
+{
+    MergeInput *input = (MergeInput *)arg;
+    merge_sort_new(input->vec, input->start, input->end);
+    free(input);
+}
+
+void thread_merge_sort(void *arg)
+{
+    MergeSortInput *input = (MergeSortInput *)arg;
+
+    int threadId = input->threadId;
+    int numbersPerThread = input->numbersPerThread;
+    int numThreads = input->numThreads;
+    int offset = input->offset;
+    int *vec = input->vec;
+
+    int left = threadId * (numbersPerThread);
+    int right = (threadId + 1) * (numbersPerThread)-1;
+    if (threadId == numThreads - 1)
+    {
+        right += offset;
+    }
+    int middle = left + (right - left) / 2;
+    if (left < right)
+    {
+        merge_sort_new(vec, left, right);
+    }
+
+    free(input);
+}
+
+/* test to ensure that the array is in sorted order */
+void test_array_is_in_order(int vec[], int count)
+{
+    for (int i = 1; i < count; i++)
+    {
+        if (vec[i] < vec[i - 1])
+        {
+            printf("Error. Out of order sequence: %d found\n", vec[i]);
+            return;
+        }
+    }
+    printf("Array is in sorted order\n");
+}
+
+/* merge locally sorted sections */
+void merge_sections_of_array(int arr[], int number, int aggregation, int numbersPerThread, int LENGTH)
+{
+    Thread *threads = (Thread *)malloc(sizeof(Thread) * number);
+    for (int i = 0; i < number; i = i + 2)
+    {
+        int left = i * (numbersPerThread * aggregation);
+        int middle = left + (numbersPerThread * aggregation) - 1;
+        int right = ((i + 2) * numbersPerThread * aggregation) - 1;
+        if (right >= LENGTH)
+        {
+            right = LENGTH - 1;
+        }
+        MergeInput *input = (MergeInput *)malloc(sizeof(MergeInput));
+        input->start = left;
+        input->mid = middle;
+        input->end = right;
+        input->vec = arr;
+        ThreadCreate(&threads[i], thread_merge, input);
+    }
+
+    for (int i = 0; i < number; i = i + 2)
+    {
+        ThreadJoin(&threads[i]);
+    }
+    free(threads);
+    if (number / 2 >= 1)
+    {
+        merge_sections_of_array(arr, number / 2, aggregation * 2, numbersPerThread, LENGTH);
+    }
+}
 
 int main(void)
 {
     InitRandom();
 
-    int count = 90000; // RandomRange(MIN_COUNT, MAX_COUNT);
-    int *vec = malloc(sizeof(int) * count);
-    int threadsNum = 4;
+    int countArray[5] = {100, 1000, 10000, 100000, 500000};
 
-    Thread *threadIDs = malloc(sizeof(Thread) * threadsNum);
-    MergeSortInput *mergeSortInputs = malloc(sizeof(MergeSortInput) * threadsNum);
-    MergeInput *mergeInputs = malloc(sizeof(MergeInput) * threadsNum);
-
-    int vecPositionsSize = (threadsNum * 2);
-    int *vecPositions = malloc(sizeof(int) * vecPositionsSize);
-    int sizeOfPartition = count / threadsNum;
-    vecPositions[0] = 0;
-
-    vecPositions[vecPositionsSize - 1] = count - 1;
-
-    for (int i = 1; i < vecPositionsSize - 1; i++)
+    // Execute for different number of elements
+    for (int c = 0; c < 5; c++)
     {
-        vecPositions[i] = i % 2 == 0 ? vecPositions[i - 1] + 1 : vecPositions[i - 1] + (sizeOfPartition - 1);
-    }
+        int count = countArray[c];
 
-    for (int i = 0; i < count; ++i)
-    {
-        vec[i] = RandomRange(0, INT_MAX / 1000);
-    }
-
-
-    time_t timeStart = clock() / CLOCKS_PER_SEC;
-
-    for (int i = 0; i < threadsNum; i++)
-    {
-        int start = vecPositions[i * 2];
-        int end = vecPositions[i * 2 + 1];
-
-        mergeSortInputs[i].vec = vec;
-        mergeSortInputs[i].start = start;
-        mergeSortInputs[i].end = end;
-        ThreadCreate(&(threadIDs[i]), ParallelMergeSort, &(mergeSortInputs[i]));
-    }
-
-    for (int i = 0; i < threadsNum; ++i)
-        ThreadJoin(&(threadIDs[i]));
-    
-    for (int i = 0; i < threadsNum; ++i)
-        threadIDs[i] = 0;
-
-    int ct = threadsNum;
-
-    while (ct > 1)
-    {
-        int numGroups = ct / 2 + ct % 2;
-        int groupSize = count / numGroups;
-
-        int t = 0;
-        for (int i = 0; i < numGroups; i++)
+        int *vec = malloc(sizeof(int) * count);
+        for (int i = 0; i < count; ++i)
         {
-            int start = 0, mid = 0, end = 0;            
-
-            start = (i * groupSize);
-            mid = (i * groupSize) + (groupSize / 2) - 1;
-            end = (i + 1) * groupSize - 1;
-
-            // int start = vecPositions[(i * 2)];
-            // int mid = vecPositions[(i + 1) * 2];
-            // int end = vecPositions[(i + 1) * 2 + 1];
-
-            // print pointers
-            mergeInputs[i].vec = vec;
-            mergeInputs[i].start = start;
-            mergeInputs[i].mid = mid;
-            mergeInputs[i].end = end;
-            // ParallelMerge(&(mergeInputs[i]));
-            ThreadCreate(&(threadIDs[t]), ParallelMerge, &(mergeInputs[i]));
-            ++t;
-            ct--;
+            vec[i] = RandomRange(0, INT_MAX);
         }
+        int *vec_copy = malloc(sizeof(int) * count);
 
-        for (int k = 0; k < t; ++k)
-            ThreadJoin(&(threadIDs[k]));
-    }
+        int threadsNum[6] = {1, 2, 4, 6, 8, 16};
 
-    time_t timeEnd = clock() / CLOCKS_PER_SEC;
-
-    printf("Time to run = %lds\n", (timeEnd - timeStart));
-
-    printf("Sorted = %s\n", IsSorted(vec, count) ? "YES" : "NO");
-
-    free(vecPositions);
-    free(vec);
-    free(threadIDs);
-    free(mergeSortInputs);
-    free(mergeInputs);
-
-    return EXIT_SUCCESS;
-}
-
-void Merge(int *vec, int start, int mid, int end)
-{
-    int start2 = mid + 1;
-    // if the first half is smaller than the second half, return
-    if (vec[mid] <= vec[start2])
-        return;
-
-    // while start <= mid and start2 <= end, loop
-    while (start <= mid && start2 <= end)
-    {
-        // if element at start is smaller than element at start2, increment start
-        if (vec[start] <= vec[start2])
+        // Execute for different number of threads
+        for (int i = 0; i < 6; i++)
         {
-            start++;
-        }
-        else
-        {
-            int value = vec[start2];
-            int index = start2;
+            time_t start, end;
+            time(&start);
+            int numThreads = threadsNum[i];
+            int numbersPerThread = count / numThreads;
+            int offset = count % numThreads;
+            Thread *threads = malloc(sizeof(Thread) * numThreads);
 
-            // shift all elements from start2 to end to the left
-            while (index != start)
+            // memcpy vec to vec_copy
+            memcpy(vec_copy, vec, sizeof(int) * count);
+
+            /* create threads */
+            for (int i = 0; i < numThreads; i++)
             {
-                vec[index] = vec[index - 1];
-                index--;
+                MergeSortInput *input = malloc(sizeof(MergeSortInput));
+                input->vec = vec_copy;
+                input->threadId = i;
+                input->numbersPerThread = numbersPerThread;
+                input->numThreads = numThreads;
+                input->offset = offset;
+
+                ThreadCreate(&threads[i], thread_merge_sort, input);
+            }
+            for (long i = 0; i < numThreads; i++)
+            {
+                ThreadJoin(&threads[i]);
             }
 
-            vec[start] = value;
+            merge_sections_of_array(vec_copy, numThreads, 1, numbersPerThread, count);
+            free(threads);
+            time(&end);
 
-            // update all pointers
-            start++;
-            mid++;
-            start2++;
+            test_array_is_in_order(vec_copy, count);
+            double dif = difftime(end, start);
+            printf("Sorting for [%d] numbers with [%d] threads took [%.10lf] seconds to run.\n", count, numThreads, dif);
         }
+
+        free(vec);
+        free(vec_copy);
     }
-}
 
-void MergeSort(int *vec, int start, int end)
-{
-    if (end <= start)
-        return;
-    int mid = start + (end - start) / 2;
-    MergeSort(vec, start, mid);
-    MergeSort(vec, mid + 1, end);
-    Merge(vec, start, mid, end);
-}
-
-void ParallelMergeSort(void *in)
-{
-    MergeSortInput *input = (MergeSortInput *)in;
-    MergeSort(input->vec, input->start, input->end);
-}
-
-void ParallelMerge(void *in)
-{
-    MergeInput *input = (MergeInput *)in;
-    Merge(input->vec, input->start, input->mid, input->end);
-}
-
-int IsSorted(int *vec, int count)
-{
-    for (int i = 1; i < count; ++i)
-    {
-        if (vec[i] < vec[i - 1])
-            return 0;
-    }
-    return 1;
+    return EXIT_SUCCESS;
 }
