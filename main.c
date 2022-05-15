@@ -100,7 +100,7 @@ void merge_sort(int *vec, int left, int right)
 void thread_merge(void *arg)
 {
     MergeInput *input = (MergeInput *)arg;
-    merge_sort(input->vec, input->start, input->end);
+    merge(input->vec, input->start, input->mid, input->end);
     free(input);
 }
 
