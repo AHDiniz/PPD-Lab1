@@ -179,7 +179,8 @@ int main(void)
 {
     InitRandom();
 
-    int countArray[5] = {100, 1000, 10000, 100000, 500000};
+    // int countArray[5] = {100, 1000, 10000, 100000, 500000};
+    int countArray[5] = {10000, 500000, 1000000, 1500000, 2000000};
 
     // Execute for different number of elements
     for (int c = 0; c < 5; c++)

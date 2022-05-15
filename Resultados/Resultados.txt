@@ -1,0 +1,50 @@
+Sorting for [10000] numbers with [1] threads took [2.150400] ms
+Array is in sorted order
+Sorting for [10000] numbers with [2] threads took [2.284800] ms
+Array is in sorted order
+Sorting for [10000] numbers with [4] threads took [1.652480] ms
+Array is in sorted order
+Sorting for [10000] numbers with [8] threads took [2.423296] ms
+Array is in sorted order
+Sorting for [10000] numbers with [16] threads took [3.256576] ms
+Array is in sorted order
+Sorting for [500000] numbers with [1] threads took [118.350080] ms
+Array is in sorted order
+Sorting for [500000] numbers with [2] threads took [64.814336] ms
+Array is in sorted order
+Sorting for [500000] numbers with [4] threads took [52.117504] ms
+Array is in sorted order
+Sorting for [500000] numbers with [8] threads took [43.310848] ms
+Array is in sorted order
+Sorting for [500000] numbers with [16] threads took [44.129536] ms
+Array is in sorted order
+Sorting for [1000000] numbers with [1] threads took [233.049600] ms
+Array is in sorted order
+Sorting for [1000000] numbers with [2] threads took [127.454976] ms
+Array is in sorted order
+Sorting for [1000000] numbers with [4] threads took [98.474496] ms
+Array is in sorted order
+Sorting for [1000000] numbers with [8] threads took [83.798784] ms
+Array is in sorted order
+Sorting for [1000000] numbers with [16] threads took [95.740672] ms
+Array is in sorted order
+Sorting for [1500000] numbers with [1] threads took [337.011968] ms
+Array is in sorted order
+Sorting for [1500000] numbers with [2] threads took [197.891328] ms
+Array is in sorted order
+Sorting for [1500000] numbers with [4] threads took [146.839808] ms
+Array is in sorted order
+Sorting for [1500000] numbers with [8] threads took [121.388800] ms
+Array is in sorted order
+Sorting for [1500000] numbers with [16] threads took [129.570304] ms
+Array is in sorted order
+Sorting for [2000000] numbers with [1] threads took [450.214144] ms
+Array is in sorted order
+Sorting for [2000000] numbers with [2] threads took [260.177664] ms
+Array is in sorted order
+Sorting for [2000000] numbers with [4] threads took [215.088128] ms
+Array is in sorted order
+Sorting for [2000000] numbers with [8] threads took [175.706368] ms
+Array is in sorted order
+Sorting for [2000000] numbers with [16] threads took [204.418560] ms
+Array is in sorted order
